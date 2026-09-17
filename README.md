@@ -3,14 +3,16 @@
 
 ---
 
-## ▶ Run It Instantly
-```bash
-# No install needed — just open in your browser:
-open index.html
+## 🌐 Live Links
+- **Live Web App:** [https://rijulthakur34-glitch.github.io/AIONOS/](https://rijulthakur34-glitch.github.io/AIONOS/)
+- **Architecture Documentation:** [https://rijulthakur34-glitch.github.io/AIONOS/architecture.html](https://rijulthakur34-glitch.github.io/AIONOS/architecture.html)
 
-# Or serve with Python:
-python3 -m http.server 8080
-# → http://localhost:8080
+---
+
+## ▶ Local Run
+```bash
+# No install needed — open directly in browser:
+open index.html
 ```
 
 ---
