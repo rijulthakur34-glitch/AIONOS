@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Architecture — SkyKing Airlines AI Agent | AIONOS Assignment 3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg0:#06070e;--bg1:#0b0d1a;--bg2:#101225;--bg3:#171a33;
+      --acc:#6366f1;--acc2:#8b5cf6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--blue:#38bdf8;
+      --t1:#f0f4ff;--t2:#8892b0;--t3:#4a5275;
+      --border:rgba(255,255,255,0.07);
+      --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+    }
+    body{font-family:var(--font);background:var(--bg0);color:var(--t1);min-height:100vh;padding:40px 24px;}
+    .page{max-width:900px;margin:0 auto;}
+
+    /* Header */
+    .hdr{display:flex;align-items:center;gap:14px;margin-bottom:48px;}
+    .hdr-logo{width:48px;height:48px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+    .hdr-brand{font-size:22px;font-weight:800;background:linear-gradient(135deg,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .hdr-sub{font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:.05em;}
+    .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#a78bfa;margin-left:12px;}
+
+    h2{font-size:18px;font-weight:700;color:var(--t1);margin:40px 0 16px;display:flex;align-items:center;gap:8px;}
+    h2::before{content:'';display:block;width:3px;height:20px;background:var(--acc);border-radius:2px;}
+    p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:12px;}
+
+    /* Flow diagram */
+    .flow{display:flex;flex-direction:column;align-items:center;gap:0;margin:24px 0;}
+    .layer{width:100%;max-width:760px;margin-bottom:0;}
+    .layer-label{text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+    .layer-nodes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    .node{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--border);color:var(--t2);background:var(--bg2);transition:all .2s;}
+    .node:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.4);}
+    .node.acc{border-color:rgba(99,102,241,.5);color:#c7d2fe;background:rgba(99,102,241,.08);}
+    .node.green{border-color:rgba(16,185,129,.4);color:#6ee7b7;background:rgba(16,185,129,.07);}
+    .node.amber{border-color:rgba(245,158,11,.4);color:#fcd34d;background:rgba(245,158,11,.07);}
+    .node.red{border-color:rgba(239,68,68,.4);color:#fca5a5;background:rgba(239,68,68,.07);}
+    .node.blue{border-color:rgba(56,189,248,.4);color:#93c5fd;background:rgba(56,189,248,.07);}
+    .arrow{font-size:20px;color:var(--t3);text-align:center;margin:6px 0;line-height:1;}
+
+    /* State machine */
+    .states{display:flex;align-items:center;gap:0;margin:24px 0;flex-wrap:wrap;justify-content:center;}
+    .state{padding:12px 20px;border-radius:10px;text-align:center;min-width:140px;border:1px solid;}
+    .state.identify{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.07);color:#93c5fd;}
+    .state.active{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.07);color:#6ee7b7;}
+    .state.escalated{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.07);color:#fca5a5;}
+    .state-name{font-size:13px;font-weight:700;}
+    .state-desc{font-size:10px;opacity:.7;margin-top:3px;}
+    .state-arrow{font-size:20px;color:var(--t3);padding:0 8px;align-self:center;}
+
+    /* Policy table */
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    th{padding:10px 14px;text-align:left;background:var(--bg2);color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;border-bottom:1px solid var(--border);}
+    td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:top;line-height:1.5;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .td-rule{color:var(--t1);font-weight:500;}
+    .tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+    .tag.ok{background:rgba(16,185,129,.15);color:#6ee7b7;}
+    .tag.no{background:rgba(239,68,68,.15);color:#fca5a5;}
+    .tag.esc{background:rgba(245,158,11,.15);color:#fcd34d;}
+
+    /* Design decisions */
+    .decisions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+    .decision-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:16px;}
+    .dc-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px;}
+    .dc-body{font-size:12px;color:var(--t2);line-height:1.6;}
+
+    /* Files */
+    .files{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+    .file-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;}
+    .file-name{font-family:var(--mono);font-size:12px;color:var(--acc2);min-width:100px;}
+    .file-size{font-size:11px;color:var(--t3);min-width:50px;}
+    .file-desc{font-size:12px;color:var(--t2);}
+
+    .back{display:inline-flex;align-items:center;gap:6px;color:var(--acc);font-size:13px;text-decoration:none;margin-bottom:32px;padding:6px 14px;border:1px solid rgba(99,102,241,.3);border-radius:8px;background:rgba(99,102,241,.07);}
+    .back:hover{background:rgba(99,102,241,.15);}
+
+    footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--t3);}
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a class="back" href="index.html">← Back to Agent</a>
+
+  <div class="hdr">
+    <div class="hdr-logo">✈️</div>
+    <div>
+      <div class="hdr-brand">SkyKing Airlines — Customer Resolution Agent <span class="badge">Assignment 3</span></div>
+      <div class="hdr-sub">System Architecture · AIONOS Agentic AI Factory · Batch 2027 · Exercise date: 23 Sep 2026</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <h2>Overview</h2>
+  <p>This agent handles airline disruption scenarios for three real customers from the Assignment 3 data pack. It identifies customers, interprets their requests, enforces policy rules, and produces structured reasoning traces for every decision — making the agent fully explainable and auditable.</p>
+  <p>The system is implemented as a pure HTML/CSS/JS single-page application — no backend, no external APIs, no dependencies. All data is grounded strictly in the data pack.</p>
+
+  <!-- ARCHITECTURE FLOW -->
+  <h2>System Architecture</h2>
+  <div class="flow">
+    <div class="layer">
+      <div class="layer-label">Input Layer</div>
+      <div class="layer-nodes">
+        <div class="node blue">👤 Customer Text Input</div>
+        <div class="node blue">🎭 Scenario Quick-Loader</div>
+        <div class="node blue">👮 Supervisor Override</div>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="layer">
+      <div class="layer-label">Processing Layer</div>
+      <div class="layer-nodes">
+        <div class="node acc">🔍 Intent Recognition (13 patterns)</div>
+        <div class="node acc">😤 Anger Detection + Empathy Scaling</div>
+        <div class="node acc">⚠️ Legal Threat Detection</div>
+        <div class="node acc">🎯 Customer Identification (PNR / name)</div>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="layer">
+      <div class="layer-label">Data Layer (strictly from data pack)</div>
+      <div class="layer-nodes">
+        <div class="node">👥 Customer Profiles</div>
+        <div class="node">✈️ Booking / Transaction Data</div>
+        <div class="node">📜 5 Service Policy Rules</div>
+        <div class="node">✅ Allowed Actions List</div>
+        <div class="node red">🚫 Prohibited Actions List</div>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="layer">
+      <div class="layer-label">Decision Layer</div>
+      <div class="layer-nodes">
+        <div class="node green">✅ Execute Allowed Actions</div>
+        <div class="node amber">⚠️ Escalate When Limit Exceeded</div>
+        <div class="node red">❌ Block Prohibited Actions</div>
+        <div class="node acc">🧠 Build Chain-of-Thought Trace</div>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="layer">
+      <div class="layer-label">Output Layer</div>
+      <div class="layer-nodes">
+        <div class="node">💬 Empathetic Chat Response</div>
+        <div class="node acc">🧠 Expandable Reasoning Trace</div>
+        <div class="node">📊 Live Supervisor Dashboard</div>
+        <div class="node">📋 Timestamped Audit Trail</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE MACHINE -->
+  <h2>Conversation State Machine</h2>
+  <div class="states">
+    <div class="state identify">
+      <div class="state-name">IDENTIFY</div>
+      <div class="state-desc">Ask for PNR/name<br>No data access yet</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state active">
+      <div class="state-name">ACTIVE</div>
+      <div class="state-desc">Customer verified<br>Resolving issues</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state escalated">
+      <div class="state-name">ESCALATED</div>
+      <div class="state-desc">Legal threat / prohibited<br>Human specialist takes over</div>
+    </div>
+  </div>
+
+  <!-- POLICY TABLE -->
+  <h2>Policy Enforcement</h2>
+  <table>
+    <thead>
+      <tr><th>Situation</th><th>Policy Rule</th><th>Decision</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Flight cancelled (airline-caused)</td><td class="td-rule">Cancellation Rebooking Rule</td><td><span class="tag ok">ALLOWED</span> Rebook or full refund</td></tr>
+      <tr><td>Delay &lt; 3 hours</td><td class="td-rule">Delay Compensation Rule</td><td><span class="tag ok">ALLOWED</span> ₹500 meal voucher</td></tr>
+      <tr><td>Delay 3–5 hours</td><td class="td-rule">Delay Compensation Rule</td><td><span class="tag ok">ALLOWED</span> Meal voucher + lounge</td></tr>
+      <tr><td>Delay &gt; 5 hours</td><td class="td-rule">Delay Compensation Rule</td><td><span class="tag ok">ALLOWED</span> Meal + lounge + hotel (delayed hrs only)</td></tr>
+      <tr><td>Cancellation refund</td><td class="td-rule">Refund Processing Rule</td><td><span class="tag ok">ALLOWED</span> 7 business days, original payment only</td></tr>
+      <tr><td>Voluntary rebook, fare diff ≤ ₹1,500</td><td class="td-rule">Fare Difference Rule</td><td><span class="tag ok">ALLOWED</span> Agent can process</td></tr>
+      <tr><td>Voluntary rebook, fare diff &gt; ₹1,500</td><td class="td-rule">Fare Difference Rule</td><td><span class="tag esc">ESCALATE</span> Supervisor approval required</td></tr>
+      <tr><td>Business class upgrade</td><td class="td-rule">Prohibited Actions</td><td><span class="tag no">DENIED</span> Beyond policy — cannot approve</td></tr>
+      <tr><td>Full-night hotel (vs delayed hours)</td><td class="td-rule">Delay Compensation Rule</td><td><span class="tag no">DENIED</span> Only delayed hours covered</td></tr>
+      <tr><td>Hotel for 4h delay</td><td class="td-rule">Delay Compensation Rule</td><td><span class="tag no">DENIED</span> Threshold is &gt;5h</td></tr>
+      <tr><td>Legal threat or formal complaint</td><td class="td-rule">Prohibited Actions</td><td><span class="tag esc">ESCALATE IMMEDIATELY</span></td></tr>
+      <tr><td>Gold / Platinum tier customer</td><td class="td-rule">Loyalty Tier Rule</td><td>Priority rebooking only — no extra compensation</td></tr>
+    </tbody>
+  </table>
+
+  <!-- DESIGN DECISIONS -->
+  <h2>Key Design Decisions</h2>
+  <div class="decisions">
+    <div class="decision-card">
+      <div class="dc-title">🧠 Transparent Reasoning</div>
+      <div class="dc-body">Every agent response produces a structured chain-of-thought: intent detected → policy checked → action allowed or blocked → conclusion. Displayed as an expandable trace in the UI so any decision can be audited step-by-step.</div>
+    </div>
+    <div class="decision-card">
+      <div class="dc-title">👮 Human-in-the-Loop</div>
+      <div class="dc-body">The Supervisor Command Centre shows live risk score (0–100), frustration level, turns taken, last policy cited, and a full action log. Supervisors can inject messages directly into any conversation.</div>
+    </div>
+    <div class="decision-card">
+      <div class="dc-title">🚫 No Hallucination</div>
+      <div class="dc-body">Every response is grounded strictly in the data pack. The agent never invents policy rules, customer data, or facts. The DATA object is the single source of truth, and every policy response cites its policyId.</div>
+    </div>
+    <div class="decision-card">
+      <div class="dc-title">😤 Anger Scales Empathy, Not Policy</div>
+      <div class="dc-body">Frustration detection adjusts the empathy prefix intensity — but never changes the policy decision. An angry customer gets a more empathetic response, but the same entitlements. Agents don't cave under pressure.</div>
+    </div>
+    <div class="decision-card">
+      <div class="dc-title">⚡ Hard Escalation Triggers</div>
+      <div class="dc-body">Legal threats, requests for upgrades beyond policy, fare differences above ₹1,500, and requests to process refunds to a different payment method all trigger immediate escalation — no agent discretion allowed.</div>
+    </div>
+    <div class="decision-card">
+      <div class="dc-title">📊 Risk Scoring</div>
+      <div class="dc-body">Every agent turn updates a session risk score (0–100) based on actions taken. Issuing entitled compensation reduces risk; denied requests, anger, and escalations increase it. Displayed as a live animated ring in the supervisor panel.</div>
+    </div>
+  </div>
+
+  <!-- FILE STRUCTURE -->
+  <h2>File Structure</h2>
+  <div class="files">
+    <div class="file-row"><span class="file-name">data.js</span><span class="file-size">10.8 kb</span><span class="file-desc">Complete data pack: 3 customers, 3 PNRs, booking data, 5 policy rules with IDs, allowed/prohibited action lists</span></div>
+    <div class="file-row"><span class="file-name">agent.js</span><span class="file-size">36.2 kb</span><span class="file-desc">Core reasoning engine — handles all intents, produces { text, reasoning[], action, confidence, riskDelta } per response</span></div>
+    <div class="file-row"><span class="file-name">ui.js</span><span class="file-size">16.9 kb</span><span class="file-desc">UI controller — renders reasoning traces, supervisor panel, scenario loader, typing simulation, audit modal</span></div>
+    <div class="file-row"><span class="file-name">style.css</span><span class="file-size">22.7 kb</span><span class="file-desc">Premium dark 3-panel layout — glassmorphism, animations, risk ring, action log, reasoning panels</span></div>
+    <div class="file-row"><span class="file-name">index.html</span><span class="file-size">12.3 kb</span><span class="file-desc">Entry point — 3-panel HTML layout (scenarios · chat · supervisor)</span></div>
+    <div class="file-row"><span class="file-name">architecture.html</span><span class="file-size">—</span><span class="file-desc">This page</span></div>
+  </div>
+
+  <!-- TOOLS USED -->
+  <h2>AI Tools Used</h2>
+  <table>
+    <thead><tr><th>Tool</th><th>How Used</th></tr></thead>
+    <tbody>
+      <tr><td class="td-rule">Antigravity (AGY) by Google DeepMind</td><td>Primary coding assistant — generated all architecture, agent logic, UI, and documentation. All code reviewed and understood line-by-line.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ASSUMPTIONS -->
+  <h2>Inputs, Sources & Assumptions</h2>
+  <p><strong>Data source:</strong> Assignment 3_DataPack_CustomerResolutionAgent.pdf — read in full. All customer names, PNRs, flight numbers, routes, dates, delay hours, policy rules, and allowed/prohibited action lists are taken verbatim from this document.</p>
+  <p><strong>Assumptions:</strong></p>
+  <ul style="color:var(--t2);font-size:13px;line-height:1.8;margin-left:20px;">
+    <li>The exercise date is Wednesday 23 September 2026 as stated in the data pack</li>
+    <li>"Next available flight" is acknowledged but not simulated (no flight inventory data provided)</li>
+    <li>Hotel ground team contact is simulated (no hotel API provided)</li>
+    <li>Payment processing is simulated (no payment gateway provided)</li>
+    <li>All compensation is applied immediately in-session as the data pack treats agent actions as executable</li>
+  </ul>
+
+  <footer>SkyKing Airlines Customer Resolution Agent · AIONOS Assignment 3 · Batch 2027 · Built by Rijul</footer>
+</div>
+</body>
+</html>
