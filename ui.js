@@ -121,19 +121,11 @@ function addMessage(speaker, text, opts = {}) {
       panel.appendChild(link);
     }
 
-    toggle.addEventListener("click", () => {
-      toggle.classList.toggle("open");
-      panel.classList.toggle("visible");
-      toggle.querySelector(".arrow").textContent = panel.classList.contains("visible") ? "▼" : "▶";
-      toggle.querySelector("span:last-child") && (toggle.innerHTML = `<span class="arrow">${panel.classList.contains("visible") ? "▼" : "▶"}</span> 🧠 ${panel.classList.contains("visible") ? "Hide" : "See"} reasoning (${opts.reasoning.length} steps)`);
-      // Redraw the arrow correctly
-      toggle.innerHTML = `<span class="arrow">${panel.classList.contains("visible") ? "▼" : "▶"}</span> 🧠 ${panel.classList.contains("visible") ? "Hide" : "See"} reasoning (${opts.reasoning.length} steps)`;
-      toggle.addEventListener("click", arguments.callee); // will double-bind, fix below
-    });
-    // Re-bind cleanly
+    // Single clean click handler — no double-bind
+    const n = opts.reasoning.length;
     toggle.onclick = () => {
       const isOpen = panel.classList.toggle("visible");
-      toggle.innerHTML = `<span class="arrow">${isOpen ? "▼" : "▶"}</span> 🧠 ${isOpen ? "Hide" : "See"} reasoning (${opts.reasoning.length} steps)`;
+      toggle.innerHTML = `<span class="arrow">${isOpen ? "▼" : "▶"}</span> 🧠 ${isOpen ? "Hide" : "See"} reasoning (${n} steps)`;
     };
 
     body.appendChild(toggle);
@@ -286,8 +278,7 @@ async function handleSend() {
 
   addMessage("agent", result.text, {
     reasoning: result.reasoning,
-    policyId: result.reasoning?.find(r => r.policyId)?.policyId ||
-              AGENT.actionsLog.slice(-1)[0]?.policyId || null,
+    policyId: AGENT.actionsLog.slice(-1)[0]?.policyId || null,
     action: result.action,
     escalated: result.action === "ESCALATED",
     issued: result.action === "ISSUED",
